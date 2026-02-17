@@ -16,8 +16,22 @@ async function getWindows() {
 }
 
 function clearList() { listEl.innerHTML = ''; }
+// storage helpers for collapsed windows
+function loadCollapsedIds() {
+  return new Promise(resolve => {
+    chrome.storage.local.get({ collapsedWindowIds: [] }, res => {
+      const set = new Set((res.collapsedWindowIds || []).map(String));
+      resolve(set);
+    });
+  });
+}
 
-function render(windows) {
+function saveCollapsedIds(set) {
+  const arr = Array.from(set);
+  return new Promise(resolve => chrome.storage.local.set({ collapsedWindowIds: arr }, resolve));
+}
+
+function render(windows, collapsedSet = new Set()) {
   clearList();
   if (!windows || windows.length === 0) { listEl.textContent = 'No windows found'; return; }
 
@@ -86,14 +100,20 @@ function render(windows) {
 
     winDiv.appendChild(tabsContainer);
     listEl.appendChild(winDiv);
+
+    // apply collapsed state from storage if present
+    if (collapsedSet.has(String(win.id))) {
+      setCollapsedState(winDiv, true, false);
+    }
   });
 
   attachEvents();
 }
 
-function setCollapsedState(winEl, collapsed) {
+async function setCollapsedState(winEl, collapsed, persist = true) {
   const btn = winEl.querySelector('.collapse-btn');
   if (!btn) return;
+  const wid = String(btn.dataset.windowId || (winEl.dataset && winEl.dataset.windowId));
   if (collapsed) {
     winEl.classList.add('collapsed');
     btn.setAttribute('aria-expanded', 'false');
@@ -103,6 +123,13 @@ function setCollapsedState(winEl, collapsed) {
     btn.setAttribute('aria-expanded', 'true');
     btn.textContent = '▾';
   }
+
+  if (!persist || !wid) return;
+
+  // persist change
+  const set = await loadCollapsedIds();
+  if (collapsed) set.add(wid); else set.delete(wid);
+  await saveCollapsedIds(set);
 }
 
 function attachEvents() {
@@ -127,7 +154,7 @@ function attachEvents() {
       const winEl = e.target.closest('.window');
       if (!winEl) return;
       const expanded = e.target.getAttribute('aria-expanded') === 'true';
-      setCollapsedState(winEl, expanded);
+      setCollapsedState(winEl, expanded, true);
     });
   });
 }
@@ -136,7 +163,8 @@ async function refresh() {
   setStatus('Refreshing...');
   try {
     const wins = await getWindows();
-    render(wins);
+    const collapsedSet = await loadCollapsedIds();
+    render(wins, collapsedSet);
     setStatus('Refreshed', 900);
   } catch (err) {
     setStatus('Error reading windows/tabs: ' + (err && err.message), 5000);
@@ -202,11 +230,21 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   if (collapseAllBtn) collapseAllBtn.addEventListener('click', () => {
-    qsa('.window').forEach(w => setCollapsedState(w, true));
+    // collapse all windows and persist
+    (async () => {
+      qsa('.window').forEach(w => setCollapsedState(w, true, false));
+      // update storage with all window ids
+      const ids = qsa('.collapse-btn').map(b => String(b.dataset.windowId || b.getAttribute('data-window-id'))).filter(Boolean);
+      await saveCollapsedIds(new Set(ids));
+    })();
   });
 
   if (expandAllBtn) expandAllBtn.addEventListener('click', () => {
-    qsa('.window').forEach(w => setCollapsedState(w, false));
+    // expand all windows and clear persisted state
+    (async () => {
+      qsa('.window').forEach(w => setCollapsedState(w, false, false));
+      await saveCollapsedIds(new Set());
+    })();
   });
 
   loadTheme();
