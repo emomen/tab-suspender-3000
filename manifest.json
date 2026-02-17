@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Window & Tab Manager",
+  "version": "1.0",
+  "description": "List browser windows and tabs; suspend checked tabs.",
+  "permissions": [
+    "tabs",
+    "windows"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Window & Tab Manager"
+  }
+}
