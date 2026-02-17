@@ -34,7 +34,7 @@ button{padding:6px 8px;border-radius:6px;border:1px solid var(--button-border);b
 
 .theme-toggle {display:inline-flex;align-items:center;gap:6px;padding:6px 8px}
 
-.collapse-btn{margin-left:auto;padding:4px 8px;border-radius:6px;border:1px solid var(--button-border);background:transparent;cursor:pointer;color:var(--text);font-size:12px}
+.collapse-btn{padding:4px 8px;border-radius:6px;border:1px solid var(--button-border);background:transparent;cursor:pointer;color:var(--text);font-size:12px}
 .window.collapsed .tabs{display:none}
 
 
