@@ -47,8 +47,18 @@ function render(windows, collapsedSet = new Set()) {
     winCheckbox.dataset.windowId = win.id;
     winCheckbox.className = 'window-checkbox';
 
-    const winLabel = document.createElement('span');
+    const winLabel = document.createElement('a');
+    winLabel.href = '#';
     winLabel.textContent = `Window ${win.id} (${win.tabs ? win.tabs.length : 0} tabs)`;
+    winLabel.style.textDecoration = 'none';
+    winLabel.addEventListener('click', (e) => {
+      e.preventDefault();
+      // focus the window
+      chrome.windows.update(win.id, { focused: true }, () => {
+        const err = chrome.runtime.lastError;
+        if (err) setStatus('Error focusing window: ' + err.message, 4000);
+      });
+    });
 
     const collapseBtn = document.createElement('button');
     collapseBtn.type = 'button';
@@ -80,9 +90,23 @@ function render(windows, collapsedSet = new Set()) {
       status.className = 'status ' + (tab.discarded ? 'suspended' : 'active');
       status.title = tab.discarded ? 'Suspended tab' : 'Active tab';
 
-      const title = document.createElement('span');
+      const title = document.createElement('a');
       title.className = 'title';
+      title.href = '#';
       title.textContent = tab.title || tab.url || 'Untitled';
+      title.style.textDecoration = 'none';
+      title.addEventListener('click', (e) => {
+        e.preventDefault();
+        // focus window then activate tab
+        chrome.windows.update(win.id, { focused: true }, () => {
+          const werr = chrome.runtime.lastError;
+          if (werr) { setStatus('Error focusing window: ' + werr.message, 4000); return; }
+          chrome.tabs.update(tab.id, { active: true }, () => {
+            const terr = chrome.runtime.lastError;
+            if (terr) setStatus('Error activating tab: ' + terr.message, 4000);
+          });
+        });
+      });
 
       const url = document.createElement('a');
       url.href = tab.url || '#';
