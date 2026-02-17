@@ -62,6 +62,10 @@ function render(windows) {
       tabCheckbox.dataset.windowId = win.id;
       tabCheckbox.className = 'tab-checkbox';
 
+      const status = document.createElement('span');
+      status.className = 'status ' + (tab.discarded ? 'suspended' : 'active');
+      status.title = tab.discarded ? 'Suspended tab' : 'Active tab';
+
       const title = document.createElement('span');
       title.className = 'title';
       title.textContent = tab.title || tab.url || 'Untitled';
@@ -74,6 +78,7 @@ function render(windows) {
       url.rel = 'noreferrer';
 
       t.appendChild(tabCheckbox);
+      t.appendChild(status);
       t.appendChild(title);
       t.appendChild(url);
       tabsContainer.appendChild(t);
