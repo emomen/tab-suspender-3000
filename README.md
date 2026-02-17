@@ -10,7 +10,7 @@ Installation
 
 Usage
 
-- Click the extension icon to open the popup.
+- Click the extension icon to open the UI in a new tab.
 - Use "Refresh" to reload the list of windows and tabs.
 - Check windows to select/deselect all their tabs, or check individual tabs.
 - Click "Suspend selected" to discard (suspend) the checked tabs.

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Window & Tab Manager</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <h1 style="font-size:16px;margin:0">Window & Tab Manager</h1>
+      <div style="margin-left:auto">
+        <button id="refreshBtn">Refresh</button>
+        <button id="suspendBtn">Suspend selected</button>
+      </div>
+    </header>
+    <div id="status" aria-live="polite"></div>
+    <div id="list"></div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
