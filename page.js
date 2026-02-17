@@ -6,6 +6,20 @@ const statusEl = qs('#status');
 const refreshBtn = qs('#refreshBtn');
 const suspendBtn = qs('#suspendBtn');
 
+let currentTabId = null;
+
+function loadCurrentTab() {
+  return new Promise(resolve => {
+    if (!chrome.tabs || !chrome.tabs.getCurrent) return resolve(null);
+    try {
+      chrome.tabs.getCurrent(t => {
+        currentTabId = t && t.id ? t.id : null;
+        resolve(currentTabId);
+      });
+    } catch (e) { resolve(null); }
+  });
+}
+
 function setStatus(txt, timeout = 3000) {
   statusEl.textContent = txt;
   if (timeout) setTimeout(() => { if (statusEl.textContent === txt) statusEl.textContent = ''; }, timeout);
@@ -85,6 +99,17 @@ function render(windows, collapsedSet = new Set()) {
       tabCheckbox.dataset.tabId = tab.id;
       tabCheckbox.dataset.windowId = win.id;
       tabCheckbox.className = 'tab-checkbox';
+
+      // Prevent suspending the extension's own UI tab
+      if (currentTabId && tab.id === currentTabId) {
+        tabCheckbox.disabled = true;
+        tabCheckbox.checked = false;
+        tabCheckbox.title = 'This extension tab cannot be suspended';
+        const note = document.createElement('span');
+        note.className = 'self-note';
+        note.textContent = ' (Extension)';
+        t.appendChild(note);
+      }
 
       const status = document.createElement('span');
       status.className = 'status ' + (tab.discarded ? 'suspended' : 'active');
@@ -196,7 +221,13 @@ async function refresh() {
 }
 
 async function suspendSelected() {
-  const selected = qsa('.tab-checkbox').filter(cb => cb.checked).map(cb => Number(cb.dataset.tabId));
+  let selected = qsa('.tab-checkbox').filter(cb => cb.checked).map(cb => Number(cb.dataset.tabId));
+  // Ensure we never attempt to suspend the extension's own tab
+  if (currentTabId) {
+    const before = selected.length;
+    selected = selected.filter(id => id !== currentTabId);
+    if (selected.length !== before) setStatus('Skipped extension tab', 3000);
+  }
   if (selected.length === 0) { setStatus('No tabs selected'); return; }
 
   suspendBtn.disabled = true;
@@ -226,7 +257,8 @@ async function suspendSelected() {
   refresh();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadCurrentTab();
   refreshBtn.addEventListener('click', refresh);
   suspendBtn.addEventListener('click', suspendSelected);
   const themeBtn = qs('#themeToggle');
