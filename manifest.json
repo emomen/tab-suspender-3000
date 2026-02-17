@@ -5,7 +5,8 @@
   "description": "List browser windows and tabs; suspend checked tabs.",
   "permissions": [
     "tabs",
-    "windows"
+    "windows",
+    "storage"
   ],
   "background": {
     "service_worker": "background.js"

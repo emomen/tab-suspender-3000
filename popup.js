@@ -142,5 +142,28 @@ async function suspendSelected() {
 document.addEventListener('DOMContentLoaded', () => {
   refreshBtn.addEventListener('click', refresh);
   suspendBtn.addEventListener('click', suspendSelected);
+  const themeBtn = qs('#themeToggle');
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (themeBtn) {
+      themeBtn.setAttribute('aria-pressed', theme === 'dark');
+      themeBtn.textContent = theme === 'dark' ? 'Dark' : 'Light';
+    }
+  }
+
+  function loadTheme() {
+    chrome.storage.local.get({ theme: 'light' }, res => {
+      applyTheme(res.theme || 'light');
+    });
+  }
+
+  if (themeBtn) themeBtn.addEventListener('click', () => {
+    chrome.storage.local.get({ theme: 'light' }, res => {
+      const next = (res.theme === 'dark') ? 'light' : 'dark';
+      chrome.storage.local.set({ theme: next }, () => applyTheme(next));
+    });
+  });
+
+  loadTheme();
   refresh();
 });
