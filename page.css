@@ -41,4 +41,20 @@ button{padding:6px 8px;border-radius:6px;border:1px solid var(--button-border);b
 .collapse-btn{padding:4px 8px;border-radius:6px;border:1px solid var(--button-border);background:transparent;cursor:pointer;color:var(--text);font-size:12px}
 .window.collapsed .tabs{display:none}
 
+/* Links: window headers and tab titles */
+.window-header a,
+.tab .title {
+	color: var(--text);
+	text-decoration: none;
+	cursor: pointer;
+}
+.window-header a:hover,
+.tab .title:hover {
+	text-decoration: underline;
+}
+.window-header a:active,
+.tab .title:active {
+	opacity: 0.85;
+}
+
 

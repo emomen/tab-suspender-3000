@@ -50,7 +50,7 @@ function render(windows, collapsedSet = new Set()) {
     const winLabel = document.createElement('a');
     winLabel.href = '#';
     winLabel.textContent = `Window ${win.id} (${win.tabs ? win.tabs.length : 0} tabs)`;
-    winLabel.style.textDecoration = 'none';
+    // winLabel.style.textDecoration = 'none'; // commented out to allow underline on hover
     winLabel.addEventListener('click', (e) => {
       e.preventDefault();
       // focus the window
@@ -94,7 +94,7 @@ function render(windows, collapsedSet = new Set()) {
       title.className = 'title';
       title.href = '#';
       title.textContent = tab.title || tab.url || 'Untitled';
-      title.style.textDecoration = 'none';
+      // title.style.textDecoration = 'none'; // commented out to allow underline on hover
       title.addEventListener('click', (e) => {
         e.preventDefault();
         // focus window then activate tab
