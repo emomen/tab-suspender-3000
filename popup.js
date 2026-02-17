@@ -15,7 +15,7 @@ async function getWindows() {
   return new Promise(resolve => chrome.windows.getAll({ populate: true }, resolve));
 }
 
-function clearList(){ listEl.innerHTML = ''; }
+function clearList() { listEl.innerHTML = ''; }
 
 function render(windows) {
   clearList();
@@ -36,8 +36,16 @@ function render(windows) {
     const winLabel = document.createElement('span');
     winLabel.textContent = `Window ${win.id} (${win.tabs ? win.tabs.length : 0} tabs)`;
 
+    const collapseBtn = document.createElement('button');
+    collapseBtn.type = 'button';
+    collapseBtn.className = 'collapse-btn';
+    collapseBtn.dataset.windowId = win.id;
+    collapseBtn.setAttribute('aria-expanded', 'true');
+    collapseBtn.textContent = '▾';
+
     header.appendChild(winCheckbox);
     header.appendChild(winLabel);
+    header.appendChild(collapseBtn);
 
     winDiv.appendChild(header);
 
@@ -78,7 +86,21 @@ function render(windows) {
   attachEvents();
 }
 
-function attachEvents(){
+function setCollapsedState(winEl, collapsed) {
+  const btn = winEl.querySelector('.collapse-btn');
+  if (!btn) return;
+  if (collapsed) {
+    winEl.classList.add('collapsed');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.textContent = '▸';
+  } else {
+    winEl.classList.remove('collapsed');
+    btn.setAttribute('aria-expanded', 'true');
+    btn.textContent = '▾';
+  }
+}
+
+function attachEvents() {
   qsa('.window-checkbox').forEach(wc => {
     wc.addEventListener('change', e => {
       const wid = e.target.dataset.windowId;
@@ -93,6 +115,14 @@ function attachEvents(){
       const winBox = qs(`.window-checkbox[data-window-id='${wid}']`);
       if (!winBox) return;
       winBox.checked = tabBoxes.length > 0 && tabBoxes.every(b => b.checked);
+    });
+  });
+  qsa('.collapse-btn').forEach(cb => {
+    cb.addEventListener('click', e => {
+      const winEl = e.target.closest('.window');
+      if (!winEl) return;
+      const expanded = e.target.getAttribute('aria-expanded') === 'true';
+      setCollapsedState(winEl, expanded);
     });
   });
 }
@@ -143,6 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
   refreshBtn.addEventListener('click', refresh);
   suspendBtn.addEventListener('click', suspendSelected);
   const themeBtn = qs('#themeToggle');
+  const collapseAllBtn = qs('#collapseAllBtn');
+  const expandAllBtn = qs('#expandAllBtn');
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     if (themeBtn) {
@@ -162,6 +194,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const next = (res.theme === 'dark') ? 'light' : 'dark';
       chrome.storage.local.set({ theme: next }, () => applyTheme(next));
     });
+  });
+
+  if (collapseAllBtn) collapseAllBtn.addEventListener('click', () => {
+    qsa('.window').forEach(w => setCollapsedState(w, true));
+  });
+
+  if (expandAllBtn) expandAllBtn.addEventListener('click', () => {
+    qsa('.window').forEach(w => setCollapsedState(w, false));
   });
 
   loadTheme();
