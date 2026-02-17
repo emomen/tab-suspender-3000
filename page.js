@@ -166,7 +166,7 @@ async function suspendSelected() {
 
   suspendBtn.disabled = false;
   refreshBtn.disabled = false;
-  // refresh();
+  refresh();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
