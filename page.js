@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.setAttribute('data-theme', theme);
     if (themeBtn) {
       themeBtn.setAttribute('aria-pressed', theme === 'dark');
-      themeBtn.textContent = theme === 'dark' ? 'Dark' : 'Light';
+      themeBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
     }
   }
 
