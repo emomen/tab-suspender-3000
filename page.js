@@ -2,7 +2,6 @@ function qs(selector, el = document) { return el.querySelector(selector); }
 function qsa(selector, el = document) { return Array.from(el.querySelectorAll(selector)); }
 
 const listEl = qs('#list');
-const statusEl = qs('#status');
 const refreshBtn = qs('#refreshBtn');
 const suspendBtn = qs('#suspendBtn');
 
@@ -20,9 +19,12 @@ function loadCurrentTab() {
   });
 }
 
-function setStatus(txt, timeout = 3000) {
-  statusEl.textContent = txt;
-  if (timeout) setTimeout(() => { if (statusEl.textContent === txt) statusEl.textContent = ''; }, timeout);
+function logStatus(txt, timeout = 3000) {
+  // Status UI removed — log developer messages instead for visibility
+  try {
+    if (typeof console !== 'undefined' && console.debug) console.debug('[tab-suspender] ' + txt);
+    else if (typeof console !== 'undefined' && console.log) console.log('[tab-suspender] ' + txt);
+  } catch (e) { /* swallow errors to keep API safe */ }
 }
 
 async function getWindows() {
@@ -70,7 +72,7 @@ function render(windows, collapsedSet = new Set()) {
       // focus the window
       chrome.windows.update(win.id, { focused: true }, () => {
         const err = chrome.runtime.lastError;
-        if (err) setStatus('Error focusing window: ' + err.message, 4000);
+        if (err) logStatus('Error focusing window: ' + err.message, 4000);
       });
     });
 
@@ -125,10 +127,10 @@ function render(windows, collapsedSet = new Set()) {
         // focus window then activate tab
         chrome.windows.update(win.id, { focused: true }, () => {
           const werr = chrome.runtime.lastError;
-          if (werr) { setStatus('Error focusing window: ' + werr.message, 4000); return; }
+          if (werr) { logStatus('Error focusing window: ' + werr.message, 4000); return; }
           chrome.tabs.update(tab.id, { active: true }, () => {
             const terr = chrome.runtime.lastError;
-            if (terr) setStatus('Error activating tab: ' + terr.message, 4000);
+            if (terr) logStatus('Error activating tab: ' + terr.message, 4000);
           });
         });
       });
@@ -209,14 +211,14 @@ function attachEvents() {
 }
 
 async function refresh() {
-  setStatus('Refreshing...');
+  logStatus('Refreshing...');
   try {
     const wins = await getWindows();
     const collapsedSet = await loadCollapsedIds();
     render(wins, collapsedSet);
-    setStatus('Refreshed', 900);
+    logStatus('Refreshed', 900);
   } catch (err) {
-    setStatus('Error reading windows/tabs: ' + (err && err.message), 5000);
+    logStatus('Error reading windows/tabs: ' + (err && err.message), 5000);
   }
 }
 
@@ -236,13 +238,13 @@ async function suspendSelected() {
   if (currentTabId) {
     const before = selected.length;
     selected = selected.filter(id => id !== currentTabId);
-    if (selected.length !== before) setStatus('Skipped extension tab', 3000);
+    if (selected.length !== before) logStatus('Skipped extension tab', 3000);
   }
-  if (selected.length === 0) { setStatus('No tabs selected'); return; }
+  if (selected.length === 0) { logStatus('No tabs selected'); return; }
 
   suspendBtn.disabled = true;
   refreshBtn.disabled = true;
-  setStatus(`Suspending ${selected.length} tab(s)...`, 0);
+  logStatus(`Suspending ${selected.length} tab(s)...`, 0);
 
   const results = [];
   for (const tabId of selected) {
@@ -259,8 +261,8 @@ async function suspendSelected() {
   }
 
   const failed = results.filter(r => !r.ok);
-  if (failed.length === 0) setStatus(`Suspended ${results.length} tab(s)`, 3000);
-  else setStatus(`Suspended ${results.length - failed.length}; ${failed.length} failed`, 5000);
+  if (failed.length === 0) logStatus(`Suspended ${results.length} tab(s)`, 3000);
+  else logStatus(`Suspended ${results.length - failed.length}; ${failed.length} failed`, 5000);
 
   suspendBtn.disabled = false;
   refreshBtn.disabled = false;
