@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (chrome && chrome.windows) {
       chrome.windows.onCreated.addListener(() => scheduleRefresh());
       chrome.windows.onRemoved.addListener(() => scheduleRefresh());
-      chrome.windows.onFocusChanged && chrome.windows.onFocusChanged.addListener(() => scheduleRefresh());
+      //chrome.windows.onFocusChanged && chrome.windows.onFocusChanged.addListener(() => scheduleRefresh());
     }
   } catch (e) { /* ignore if windows API unavailable */ }
 
