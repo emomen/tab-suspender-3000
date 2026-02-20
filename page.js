@@ -220,6 +220,16 @@ async function refresh() {
   }
 }
 
+// Debounced refresh scheduler used by external listeners
+let _refreshTimer = null;
+function scheduleRefresh(delay = 200) {
+  if (_refreshTimer) clearTimeout(_refreshTimer);
+  _refreshTimer = setTimeout(() => {
+    _refreshTimer = null;
+    refresh();
+  }, delay);
+}
+
 async function suspendSelected() {
   let selected = qsa('.tab-checkbox').filter(cb => cb.checked).map(cb => Number(cb.dataset.tabId));
   // Ensure we never attempt to suspend the extension's own tab
@@ -302,6 +312,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       await saveCollapsedIds(new Set());
     })();
   });
+
+  // Auto-refresh when tabs or windows are created/removed (debounced)
+  try {
+    if (chrome && chrome.tabs) {
+      chrome.tabs.onCreated.addListener(() => scheduleRefresh());
+      chrome.tabs.onRemoved.addListener(() => scheduleRefresh());
+      chrome.tabs.onAttached && chrome.tabs.onAttached.addListener(() => scheduleRefresh());
+      chrome.tabs.onDetached && chrome.tabs.onDetached.addListener(() => scheduleRefresh());
+      // onUpdated can signal discard/undiscard or title changes
+      chrome.tabs.onUpdated.addListener(() => scheduleRefresh());
+    }
+  } catch (e) { /* ignore if tabs API unavailable */ }
+
+  try {
+    if (chrome && chrome.windows) {
+      chrome.windows.onCreated.addListener(() => scheduleRefresh());
+      chrome.windows.onRemoved.addListener(() => scheduleRefresh());
+      chrome.windows.onFocusChanged && chrome.windows.onFocusChanged.addListener(() => scheduleRefresh());
+    }
+  } catch (e) { /* ignore if windows API unavailable */ }
 
   loadTheme();
   refresh();
