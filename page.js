@@ -27,6 +27,12 @@ function logStatus(txt, timeout = 3000) {
   } catch (e) { /* swallow errors to keep API safe */ }
 }
 
+function updateTabCount(count) {
+  const el = qs('#tabCount');
+  if (!el) return;
+  el.textContent = `Total tabs: ${Number.isFinite(count) ? count : 0}`;
+}
+
 async function getWindows() {
   return new Promise(resolve => chrome.windows.getAll({ populate: true }, resolve));
 }
@@ -216,6 +222,8 @@ async function refresh() {
     const wins = await getWindows();
     const collapsedSet = await loadCollapsedIds();
     render(wins, collapsedSet);
+    const total = (wins || []).reduce((s, w) => s + ((w && w.tabs) ? w.tabs.length : 0), 0);
+    updateTabCount(total);
     logStatus('Refreshed', 900);
   } catch (err) {
     logStatus('Error reading windows/tabs: ' + (err && err.message), 5000);
