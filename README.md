@@ -1,4 +1,4 @@
-# Window & Tab Manager (Chrome extension)
+# Tab Suspender 3000 (Chrome extension)
 
 This small Chrome extension lists all browser windows and their tabs, lets you check windows or individual tabs, and suspend (discard) checked tabs.
 

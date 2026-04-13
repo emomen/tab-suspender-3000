@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Window & Tab Manager",
+  "name": "Tab Suspender 3000",
   "version": "1.0",
   "description": "List browser windows and tabs; suspend checked tabs.",
   "permissions": [
@@ -12,6 +12,6 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Window & Tab Manager"
+    "default_title": "Tab Suspender 3000"
   }
 }
